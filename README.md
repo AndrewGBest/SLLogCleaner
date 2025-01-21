@@ -1,1 +1,1 @@
-Put all your different second life resident log folders in logs folder, then run the script and watch them all the duplicate chats get combined and sorted based on timestamps into the output folder.
+Put all your different second life resident log folders into the logs folder, then run the script and watch them all the duplicate chats get combined and sorted based on timestamps into the output folder.
