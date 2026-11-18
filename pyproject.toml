@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sllogcleaner"
+description = "Merge, de-duplicate and chronologically sort Second Life chat logs."
+readme = "README.md"
+requires-python = ">=3.9"
+dynamic = ["version"]
+
+[project.scripts]
+sllogcleaner = "sllogcleaner:main"
+
+[tool.setuptools]
+py-modules = ["sllogcleaner"]
+
+[tool.setuptools.dynamic]
+version = { attr = "sllogcleaner.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
