@@ -1,8 +1,8 @@
 name: Release
 
-# Builds a stand-alone executable for every platform and attaches them to a
+# Builds a stand-alone program for every platform and attaches them to a
 # GitHub release.  Runs when a tag such as "v1.0.0" is pushed; a manual run
-# (workflow_dispatch) builds the executables without publishing anything.
+# (workflow_dispatch) builds the programs without publishing anything.
 # See docs/RELEASING.md.
 
 on:
@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           # PyInstaller cannot cross-compile, so each target needs its own
-          # runner.  Linux uses the oldest image so the binary runs on older
+          # runner.  Linux uses an older image so the binary runs on older
           # glibc versions too.
           - { os: ubuntu-22.04,   target: linux-x64 }
           - { os: windows-latest, target: windows-x64 }
@@ -30,31 +30,64 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      SLLOGCLEANER_REQUIRE_GUI: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
       - run: python -m pip install pytest pyinstaller
-      - run: python -m pytest
+      - name: Run tests
+        run: |
+          if [ "$RUNNER_OS" = Linux ]; then
+            xvfb-run -a python -m pytest
+          else
+            python -m pytest
+          fi
       - name: Check that the tag matches the version in the source
         if: github.ref_type == 'tag'
         run: test "v$(python sllogcleaner.py --version | cut -d' ' -f2)" = "$GITHUB_REF_NAME"
-      - name: Build executable
-        run: pyinstaller --onefile --console --name sllogcleaner sllogcleaner.py
-      - name: Smoke-test executable
-        run: ./dist/sllogcleaner --version
+      - name: Build
+        # --windowed: no console window on Windows, an .app bundle on macOS.
+        # macOS app bundles must be one-folder builds; the others are a
+        # single file.
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then
+            pyinstaller --windowed --name SLLogCleaner sllogcleaner.py
+          else
+            pyinstaller --onefile --windowed --name SLLogCleaner sllogcleaner.py
+          fi
+      - name: Smoke-test the built program
+        # A windowed program prints nothing on Windows, so check its work
+        # instead: merge a log and look at the result.
+        run: |
+          case "$RUNNER_OS" in
+            macOS)   program=dist/SLLogCleaner.app/Contents/MacOS/SLLogCleaner ;;
+            Windows) program=dist/SLLogCleaner.exe ;;
+            *)       program=dist/SLLogCleaner ;;
+          esac
+          mkdir -p smoke/in
+          printf '[2024/01/02 10:00]  A: second\n[2024/01/01 09:00]  A: first\n' > smoke/in/chat.txt
+          "$program" smoke/in -o smoke/out
+          for _ in $(seq 30); do [ -f smoke/out/chat.txt ] && break; sleep 1; done
+          head -n 1 smoke/out/chat.txt | grep -q first
       - name: Package
         run: |
           mkdir package
-          cp dist/sllogcleaner* README.md package/
-          python -c "import shutil, sys; shutil.make_archive('sllogcleaner-${{ matrix.target }}', 'zip' if sys.platform == 'win32' else 'gztar', 'package')"
+          cp README.md package/
+          case "$RUNNER_OS" in
+            macOS)   cp -R dist/SLLogCleaner.app package/ ;;
+            Windows) cp dist/SLLogCleaner.exe package/ ;;
+            *)       cp dist/SLLogCleaner package/ ;;
+          esac
+          python -c "import shutil, sys; shutil.make_archive('SLLogCleaner-${{ matrix.target }}', 'zip' if sys.platform == 'win32' else 'gztar', 'package')"
       - uses: actions/upload-artifact@v4
         with:
-          name: sllogcleaner-${{ matrix.target }}
+          name: SLLogCleaner-${{ matrix.target }}
           path: |
-            sllogcleaner-${{ matrix.target }}.zip
-            sllogcleaner-${{ matrix.target }}.tar.gz
+            SLLogCleaner-${{ matrix.target }}.zip
+            SLLogCleaner-${{ matrix.target }}.tar.gz
           if-no-files-found: error
 
   publish:

@@ -105,3 +105,39 @@ def test_invalid_bytes_round_trip(tmp_path):
 def test_dry_run_writes_nothing(tmp_path):
     write(tmp_path / "logs/chat.txt", "[2024/01/01 09:00]  A: hi\n")
     assert not run(tmp_path, "--dry-run").exists()
+
+
+def test_gui_merges_chosen_folders(tmp_path):
+    """Drive the window the way a user would: fill both folders, press Merge."""
+    import os
+    import time
+
+    required = os.environ.get("SLLOGCLEANER_REQUIRE_GUI")
+    try:
+        import tkinter
+        root = tkinter.Tk()
+    except Exception as error:  # no tkinter or no display on this machine
+        if required:
+            raise
+        pytest.skip(f"no GUI available: {error}")
+
+    try:
+        write(tmp_path / "logs/a/chat.txt", "[2024/01/02 10:00]  A: second\n")
+        write(tmp_path / "logs/b/chat.txt",
+              "[2024/01/02 10:00]  A: second\n[2024/01/01 09:00]  A: first\n")
+        app = slc.GuiApp(root)
+        app.input_dir.set(str(tmp_path / "logs"))
+        app.output_dir.set(str(tmp_path / "out"))
+        app.merge_button.invoke()
+        assert app.busy
+        deadline = time.time() + 30
+        while app.busy and time.time() < deadline:
+            root.update()
+            time.sleep(0.01)
+        assert not app.busy
+        assert (tmp_path / "out/chat.txt").read_text(encoding="utf-8") == (
+            "[2024/01/01 09:00]  A: first\n[2024/01/02 10:00]  A: second\n")
+        assert "1 duplicates removed" in app.report.get("1.0", "end")
+        assert str(app.merge_button.cget("text")) == "Merge"
+    finally:
+        root.destroy()
