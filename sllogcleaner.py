@@ -10,6 +10,14 @@ conversation, and writes a single transcript per conversation that contains
 every message exactly as often as it really occurred, in chronological order.
 
 See README.md for usage and for a description of the merge rules.
+
+Copyright (C) 2026 Andrew Best
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, version 3.  It is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.  See the LICENSE file for details.
 """
 
 from __future__ import annotations
@@ -26,7 +34,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 LOG_EXTENSION = ".txt"
 

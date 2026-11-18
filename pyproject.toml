@@ -7,6 +7,7 @@ name = "sllogcleaner"
 description = "Merge, de-duplicate and chronologically sort Second Life chat logs."
 readme = "README.md"
 requires-python = ">=3.9"
+license = { text = "GPL-3.0-only" }
 dynamic = ["version"]
 
 [project.scripts]

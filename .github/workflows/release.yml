@@ -75,7 +75,7 @@ jobs:
       - name: Package
         run: |
           mkdir package
-          cp README.md package/
+          cp README.md LICENSE package/
           case "$RUNNER_OS" in
             macOS)   cp -R dist/SLLogCleaner.app package/ ;;
             Windows) cp dist/SLLogCleaner.exe package/ ;;

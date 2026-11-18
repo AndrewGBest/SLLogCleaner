@@ -139,3 +139,8 @@ python -m pytest
 The whole program is [`sllogcleaner.py`](sllogcleaner.py); tests are in
 [`tests/`](tests). Building executables and publishing a release is described
 in [docs/RELEASING.md](docs/RELEASING.md).
+
+## License
+
+SL Log Cleaner is free software, released under the
+[GNU General Public License, version 3](LICENSE). It comes with no warranty.
