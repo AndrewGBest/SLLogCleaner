@@ -15,22 +15,29 @@ Your original files are only ever read, never changed.
 
 1. Download the archive for your system from the
    [Releases](../../releases) page and unpack it anywhere.
-2. Run `sllogcleaner` once. It creates a `logs` folder next to itself.
-3. Copy your Second Life log folders into `logs`. Sub-folders are searched
-   too, so you can drop in whole backups side by side:
+2. Start **SLLogCleaner**. A small window opens.
+3. Next to *Log folders*, press *Browse...* and choose the folder that holds
+   your Second Life logs. Sub-folders are searched too, so you can collect
+   whole backups side by side in one folder and choose that:
 
    ```
-   logs/
+   my-sl-logs/
      old-laptop/jane_resident/chat.txt
      old-laptop/jane_resident/My Cool Group.txt
      desktop/jane_resident/chat.txt
      ...
    ```
-4. Run `sllogcleaner` again. The merged logs appear in the `output` folder.
+4. Next to *Save merged logs to*, choose an empty folder for the result.
+5. Press *Merge*. The window lists every merged log and how many duplicates
+   were removed.
 
-On macOS and Linux, run it from a terminal (`./sllogcleaner`). The downloads
-are not code-signed, so Windows SmartScreen and macOS Gatekeeper will warn the
-first time; see [docs/RELEASING.md](docs/RELEASING.md#known-limitations).
+The two checkboxes match the `--by-account` and `--keep-date-suffix`
+[options](#options) below.
+
+The downloads are not code-signed, so Windows SmartScreen and macOS Gatekeeper
+will warn the first time; see
+[docs/RELEASING.md](docs/RELEASING.md#known-limitations) for how to get past
+that.
 
 ### Using Python
 
@@ -40,7 +47,9 @@ Requires Python 3.9 or newer; there are no other dependencies.
 python sllogcleaner.py
 ```
 
-or install it as a command:
+Without arguments this merges everything in a `logs` folder in the current
+directory into an `output` folder (creating `logs` if it is missing). Add
+`--gui` for the window. To install it as a command:
 
 ```bash
 pip install .
@@ -67,7 +76,7 @@ Third-party viewers such as Firestorm use their own folder.
 ## Options
 
 ```
-sllogcleaner [FOLDER ...] [-o FOLDER] [--by-account] [--keep-date-suffix] [-n] [-q]
+sllogcleaner [FOLDER ...] [-o FOLDER] [--by-account] [--keep-date-suffix] [-n] [-q] [--gui]
 ```
 
 | Option               | Effect |
@@ -78,7 +87,12 @@ sllogcleaner [FOLDER ...] [-o FOLDER] [--by-account] [--keep-date-suffix] [-n] [
 | `--keep-date-suffix` | Keep `chat-2024-01-15.txt` / `friend-2024-01.txt` as separate files instead of folding them into `chat.txt` / `friend.txt`. Use this if your viewer has "add datestamp to log file name" switched on and you want to put the result back. |
 | `-n`, `--dry-run`    | Show what would happen without writing anything. |
 | `-q`, `--quiet`      | Only print errors. |
+| `--gui`              | Open the window instead. |
 | `--version`, `-h`    | Version / help. |
+
+The downloaded program accepts the same arguments. On Windows it is built
+without a console, so it works but prints nothing there; use the Python
+version if you want the report in a terminal.
 
 ## How it works
 

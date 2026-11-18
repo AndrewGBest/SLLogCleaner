@@ -6,16 +6,22 @@ by the [`release` workflow](../.github/workflows/release.yml).
 
 ## Targets
 
-| Download                         | Built on (GitHub runner) | Notes |
-|----------------------------------|--------------------------|-------|
-| `sllogcleaner-windows-x64.zip`   | `windows-latest`         | |
-| `sllogcleaner-linux-x64.tar.gz`  | `ubuntu-22.04`           | Older image, so the binary also runs on distributions with an older glibc. |
-| `sllogcleaner-macos-arm64.tar.gz`| `macos-latest`           | Apple-silicon Macs. |
-| `sllogcleaner-macos-x64.tar.gz`  | `macos-15-intel`         | Intel Macs. This is GitHub's last Intel image; drop the target when it is retired. |
+| Download                          | Contains           | Built on (GitHub runner) |
+|-----------------------------------|--------------------|--------------------------|
+| `SLLogCleaner-windows-x64.zip`    | `SLLogCleaner.exe` | `windows-latest`         |
+| `SLLogCleaner-linux-x64.tar.gz`   | `SLLogCleaner`     | `ubuntu-22.04`           |
+| `SLLogCleaner-macos-arm64.tar.gz` | `SLLogCleaner.app` | `macos-latest` (Apple silicon) |
+| `SLLogCleaner-macos-x64.tar.gz`   | `SLLogCleaner.app` | `macos-15-intel` (Intel) |
 
-PyInstaller is not a cross-compiler - each executable has to be built on the
-system it is for - which is why there is one job per target. macOS is included
-because Second Life has an official macOS viewer.
+PyInstaller is not a cross-compiler - each program has to be built on the
+system it is for - which is why there is one job per target. Linux is built on
+an older image so the binary also runs on distributions with an older glibc.
+`macos-15-intel` is GitHub's last Intel image; drop that target when it is
+retired. macOS is included because Second Life has an official macOS viewer.
+
+All builds are "windowed": started without arguments they open the window,
+with arguments they act as the command line. Windows and Linux get a single
+file; macOS gets an `.app` bundle.
 
 ## Cutting a release
 
@@ -31,7 +37,7 @@ because Second Life has an official macOS viewer.
    ```
 
 3. The workflow runs the tests on every platform, checks that the tag matches
-   `__version__`, builds and smoke-tests each executable, and creates a
+   `__version__`, builds each program and smoke-tests it by merging a real log, and creates a
    **draft** GitHub release with the four archives attached.
 4. Download at least one archive, try it on real logs, edit the generated
    release notes, then press *Publish*.
@@ -47,17 +53,19 @@ python -m pip install pyinstaller
 ```
 
 ```bash
-pyinstaller --onefile --console --name sllogcleaner sllogcleaner.py
+pyinstaller --onefile --windowed --name SLLogCleaner sllogcleaner.py
 ```
 
-The executable is written to `dist/`.
+On macOS leave out `--onefile`. The result is written to `dist/`. The Python
+used for the build needs `tkinter` (on Debian/Ubuntu: the `python3-tk`
+package).
 
 ## Known limitations
 
 - **Unsigned binaries.** Windows SmartScreen shows "Windows protected your
   PC" (choose *More info → Run anyway*), and macOS Gatekeeper refuses to open
   the file on double-click (right-click → *Open*, or
-  `xattr -d com.apple.quarantine sllogcleaner`). Removing these warnings
+  `xattr -dr com.apple.quarantine SLLogCleaner.app`). Removing these warnings
   requires paid code-signing certificates (Windows) and an Apple Developer
   account with notarisation (macOS).
 - **Antivirus false positives.** One-file PyInstaller executables are
@@ -68,8 +76,5 @@ The executable is written to `dist/`.
 
 ## Possible follow-ups
 
-- A small GUI (folder pickers and a "Merge" button) for users who are not
-  comfortable with a terminal; `tkinter` ships with Python and bundles cleanly
-  with PyInstaller.
 - Publishing to PyPI so `pipx install sllogcleaner` works.
 - Linux `aarch64` build, if anyone asks for it.
